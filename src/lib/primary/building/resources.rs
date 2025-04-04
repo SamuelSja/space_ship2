@@ -12,7 +12,7 @@ pub struct ShipInfo {
 impl Default for ShipInfo {
     fn default() -> Self {
         Self {
-            start_pos: (0.0, 0.0),
+            start_pos: (-200.0, -200.0),
             tile_size: (50.0, 50.0),
         }
     }
@@ -37,7 +37,7 @@ impl Default for Storage {
                             reload: 3.0,
                         },
                     ],
-                    image: String::from("images/todo.png"),
+                    image: String::from("images/2x3todo1.png"),
                     pos: None,
                     size: (3, 2),
                 },
@@ -51,7 +51,7 @@ impl Default for Storage {
                             reload: 10.0,
                         },
                     ],
-                    image: String::from("images/todo.png"),
+                    image: String::from("images/2x3todo2.png"),
                     pos: None,
                     size: (3, 2),
                 },
@@ -64,7 +64,7 @@ impl Default for Storage {
                             power: 3,
                         },
                     ],
-                    image: String::from("images/todo.png"),
+                    image: String::from("images/2x3todo3.png"),
                     pos: None,
                     size: (3, 2),
                 }

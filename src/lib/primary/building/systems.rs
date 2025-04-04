@@ -37,7 +37,8 @@ pub fn pick_up_building (
 pub fn ghost_follow (
     mut ghost_q: Query<(&Ghost, &mut Transform)>,
     mut window_q: Query<&Window, With<PrimaryWindow>>,
-
+    rooms_q: Query<&Room>,
+    ship_info: Res<ShipInfo>,
 ) {
     if let Ok(window) = window_q.get_single() {
         for (ghost, mut transform) in ghost_q.iter_mut() {
@@ -47,7 +48,14 @@ pub fn ghost_follow (
                 mouse_pos.y -= window.height() / 2.0;
                 mouse_pos.y *= -1.0;
 
-                transform.translation = Vec3::new(mouse_pos.x, mouse_pos.y, 0.0);
+                let pos = find_pos(&ship_info, ghost, &Vec3::new(mouse_pos.x, mouse_pos.y, 0.0), &rooms_q);
+
+                if let Some(pos) = pos {
+                    let (x, y) = ship_to_global(&ship_info, pos);
+                    transform.translation = Vec3::new(x, y, 0.0);
+                } else {
+                    transform.translation = Vec3::new(mouse_pos.x, mouse_pos.y, 0.0);
+                }
             }
         }
     }
@@ -63,51 +71,19 @@ pub fn drop_ghost (
     rooms_q: Query<&Room>,
     assets: Res<AssetServer>,
 ) {
-
-
     if mouse_input.just_released(MouseButton::Left) {
         for (ghost, transform, entity) in ghost_q.iter() {
 
-
-            // let len = ghost_q.iter().len();
-            // let mut ghosts = Vec::with_capacity(len);
-            // let mut transforms = Vec::with_capacity(len);
-            // let mut entitys = Vec::with_capacity(len);
-
-            // for (ghost, transform, entity) in ghost_q.iter() {
-            //     ghosts.push(ghost);
-            //     transforms.push(transform);
-            //     entitys.push(entity);
-            // }
-
-            // let find_pos_vec = ghosts.into_iter().zip(transforms.into_iter()).collect();
-            // let pos = find_pos(find_pos_vec, &rooms_q);
-
-            let pos = find_pos(&ship_info, ghost, transform, &rooms_q);
-
-
-
-            println!("just released");
-
+            let pos = find_pos(&ship_info, ghost, &transform.translation, &rooms_q);
 
             if let Some((x, y)) = pos {
-
-
-
-
                 // todo: remove room from storage
 
+                let mut room = ghost.room.clone();
+                room.pos = Some((x, y));
 
 
-                
-                let pos = ship_info.start_pos;
-
-                let size = ship_info.tile_size;
-
-                let x = pos.0 + size.0 * (x as f32);
-                let y = pos.1 + size.1 * (y as f32);
-
-                let room = ghost.room.clone();
+                let (x, y) = ship_to_global(&ship_info, (x, y));
                 let image_name = room.image.clone();
 
                 coms.spawn((
@@ -119,61 +95,72 @@ pub fn drop_ghost (
                     room,
                 ));
 
-
-                // todo: remove Ghost
-                // unwrap: for loop requires entity
-                coms.get_entity(entity).unwrap().despawn();
             }
+
+            // unwrap: for loop requires entity
+            coms.get_entity(entity).unwrap().despawn();
         }
     }
+}
+
+/// Maps the ship position((u32, u32)) to the transform position((f32, f32))
+pub fn ship_to_global (
+    ship_info: &Res<ShipInfo>,
+    pos: (u32, u32),
+) -> (f32, f32) {
+
+    let (x, y) = pos;
+
+    let pos = ship_info.start_pos;
+
+    let size = ship_info.tile_size;
+
+    let x = pos.0 + size.0 * (x as f32);
+    let y = pos.1 + size.1 * (y as f32);
+
+    (x, y)
 }
 
 /// gives the snap location if any
 pub fn find_pos (
     ship_info: &Res<ShipInfo>,
-    // ghost_q: Vec<(&Ghost, &Transform)>,
     ghost: &Ghost,
-    transform: &Transform,
+    translation: &Vec3,
     rooms_q: &Query<&Room>,
 ) -> Option<(u32, u32)> {
-    // for (ghost, transform) in ghost_q.iter() {
+    let size = ship_info.tile_size;
+    let start = ship_info.start_pos;
 
+    let x_start = (translation.x - start.0) / size.0;
+    let y_start = (translation.y - start.1) / size.1;
 
-        let size = ship_info.tile_size;
-        let start = ship_info.start_pos;
+    if x_start < -0.5 || y_start < -0.5 {
+        return None;
+    }
 
-        let x_start = (transform.translation.x - start.0) / size.0;
-        let y_start = (transform.translation.y - start.1) / size.1;
-
-        let x_start = (x_start + 0.5) as u32;
-        let y_start = (y_start + 0.5) as u32; 
+    let x_start = (x_start + 0.5) as u32;
+    let y_start = (y_start + 0.5) as u32; 
         
+    let start = (x_start, y_start); 
+    let size = ghost.room.size;
+    let end = (start.0 + size.0, start.1 + size.1);
 
-        let start = (x_start, y_start); 
-        let size = ghost.room.size;
-        let end = (start.0 + size.0, start.1 + size.1);
+    let mut open = true;
 
+    for room in rooms_q.iter() {
+        if let Some(pos) = room.pos {
+            let size = room.size;
+            let other_end = (pos.0 + size.0, pos.1 + size.1);
 
-        let mut open = true;
-
-        for room in rooms_q.iter() {
-
-            if let Some(pos) = room.pos {
-                let size = room.size;
-                let other_end = (pos.0 + size.0, pos.1 + size.1);
-
-                open &= ! aabb2d(start, end, pos, other_end);
-            }
+            open &= ! aabb2d(start, end, pos, other_end);
         }
+    }
 
-        if ! open {
-            None
-        } else {
-            Some(start)
-        }
-    // }
-
-    // None
+    if ! open {
+        None
+    } else {
+        Some(start)
+    }
 }
 
 /// Checks if 2d u32 recs are colliding (true if colliding)
@@ -185,8 +172,13 @@ pub fn aabb2d(first_start: (u32, u32), first_end: (u32, u32), second_start: (u32
 
 /// Checks if 1d u32 recs are colliding (true if colliding)
 pub fn aabb1d(first_start: u32, first_end: u32, second_start: u32, second_end: u32) -> bool {
-    first_start <= second_start && second_start <= first_end 
+    first_start <= second_start && second_start < first_end 
     || second_start <= first_start && first_start < second_end
+}
+
+mod test {
+
+    use super::*;
 }
 
 
