@@ -2,6 +2,8 @@
 
 use bevy::{input::mouse::{MouseButtonInput, MouseMotion}, prelude::*, window::PrimaryWindow};
 
+use crate::lib::primary::building::structs::PrevLoc;
+
 use super::{gui::structs::StoredRoom, resources::{Selectable, Selected, ShipInfo, Storage}, room::Room, structs::Ghost};
 
 
@@ -13,24 +15,79 @@ use super::{gui::structs::StoredRoom, resources::{Selectable, Selected, ShipInfo
 
 /// picks up a building from the gui and turns it into a Ghost
 pub fn pick_up_building (
-    button_q: Query<(&Room, Entity, &Interaction), (With<StoredRoom>, Changed<Interaction>)>,
+    button_q: Query<(&Room, Entity, &Interaction, &StoredRoom), (With<StoredRoom>, Changed<Interaction>)>,
     mut coms: Commands,
     assets: Res<AssetServer>,
     mut selected: ResMut<Selected>,
 ) {
-    for (room, entity, interaction) in button_q.iter() {
+
+
+    for (room, button_entity, interaction, stored_room) in button_q.iter() {
+
+
+
         if let Interaction::Pressed = interaction {
             let entity = coms.spawn((
                 Sprite {
                     image: assets.load(room.image.clone()),
                     ..default()
                 },
-                Ghost::new(room.clone(), entity),
+
+
+
+                // todo replace 0 in storage
+                Ghost::new(room.clone(), PrevLoc::Storage(stored_room.index)),
             )).id();
 
             selected.val = Selectable::Ghost(entity);
         }
     }
+}
+
+/// picks up a room and turns it into a ghost
+/// 
+/// This could be improved with picking
+pub fn pick_up_room (
+    mut coms: Commands,
+    rooms_q: Query<(&Room, Entity)>,
+
+    window_q: Query<&Window, With<PrimaryWindow>>,
+
+    input: Res<ButtonInput<MouseButton>>,
+    ship_info: Res<ShipInfo>,
+
+    assets: Res<AssetServer>,
+    mut selected: ResMut<Selected>,
+
+) {
+    if input.just_pressed(MouseButton::Left) {
+        if let Some(pos) = mouse_pos(&window_q) {
+
+
+            let ship_pos = global_to_ship(&ship_info, pos);
+
+            for (room, entity) in rooms_q.iter() {
+
+
+                if let Some(start) = room.pos {
+                    let end = (start.0 + room.size.0, start.1 + room.size.1);
+
+                    if aabb2d( start, end, ship_pos, (ship_pos.0 + 1, ship_pos.1 + 1)) {
+                        let entity = coms.spawn((
+                            Sprite {
+                                image: assets.load(room.image.clone()),
+                                ..default()
+                            },
+                            Ghost::new(room.clone(), PrevLoc::Entity(entity)),
+                        )).id();
+
+                        selected.val = Selectable::Ghost(entity);
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 /// makes ghosts follow the mouse
@@ -63,6 +120,8 @@ pub fn ghost_follow (
 
 
 /// Drops the ghost onto the ship
+/// 
+/// This will panic if the ghost does not contain a valid Entity (must be an entity that is retreavable)
 pub fn drop_ghost (
     mut coms: Commands,
     mut ghost_q: Query<(&Ghost, &Transform, Entity)>,
@@ -70,6 +129,7 @@ pub fn drop_ghost (
     ship_info: Res<ShipInfo>,
     rooms_q: Query<&Room>,
     assets: Res<AssetServer>,
+    mut storage: ResMut<Storage>,
 ) {
     if mouse_input.just_released(MouseButton::Left) {
         for (ghost, transform, entity) in ghost_q.iter() {
@@ -78,6 +138,9 @@ pub fn drop_ghost (
 
             if let Some((x, y)) = pos {
                 // todo: remove room from storage
+
+
+                ghost.prev_loc.despawn(&mut coms, &mut storage);
 
                 let mut room = ghost.room.clone();
                 room.pos = Some((x, y));
@@ -103,6 +166,23 @@ pub fn drop_ghost (
     }
 }
 
+/// Gets the mouse position relative to the center of the primary window
+pub fn mouse_pos (
+    window_q: &Query<&Window, With<PrimaryWindow>>,
+) -> Option<Vec2> {
+    if let Ok(window) = window_q.get_single() {
+        if let Some(mut mouse_pos) = window.cursor_position() {
+            mouse_pos.x -= window.width() / 2.0;
+            mouse_pos.y -= window.height() / 2.0;
+            mouse_pos.y *= -1.0;
+
+            return Some(mouse_pos)
+        }
+    }
+
+    None
+}
+
 /// Maps the ship position((u32, u32)) to the transform position((f32, f32))
 pub fn ship_to_global (
     ship_info: &Res<ShipInfo>,
@@ -121,7 +201,7 @@ pub fn ship_to_global (
     (x, y)
 }
 
-/// gives the snap location if any
+/// gives the snap location if any ghost
 pub fn find_pos (
     ship_info: &Res<ShipInfo>,
     ghost: &Ghost,
@@ -161,6 +241,20 @@ pub fn find_pos (
     } else {
         Some(start)
     }
+}
+
+/// Gives the ship position of a global position
+pub fn global_to_ship (
+    ship_info: &Res<ShipInfo>,
+    point: Vec2,
+) -> (u32, u32) {
+    let size = ship_info.tile_size;
+    let start = ship_info.start_pos;
+
+    let x_start = (point.x - start.0) / size.0;
+    let y_start = (point.y - start.1) / size.1;
+
+    ((x_start + 0.5) as u32, (y_start + 0.5) as u32)
 }
 
 /// Checks if 2d u32 recs are colliding (true if colliding)

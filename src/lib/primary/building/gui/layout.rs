@@ -72,11 +72,12 @@ pub fn build_gui (
 
 
 
-pub fn insert_storage_item(p: &mut ChildBuilder<'_>, assets: &Res<AssetServer>, room: &Room) {
-    p.spawn(storage_item_style())
+pub fn insert_storage_item(p: &mut ChildBuilder<'_>, assets: &Res<AssetServer>, room: &Room, index: usize) {
+    let entity = p.spawn(storage_item_style())
     .insert(room.clone())
-    .insert(StoredRoom {})
+    .insert(StoredRoom { index })
     .insert(Button::default())
+
 
     // .insert(Mesh2d)
     // .observe(pick_up_building)
@@ -95,7 +96,10 @@ pub fn insert_storage_item(p: &mut ChildBuilder<'_>, assets: &Res<AssetServer>, 
             
             ;
         }
-    });
+    }).id();
+
+
+
 }
 
 

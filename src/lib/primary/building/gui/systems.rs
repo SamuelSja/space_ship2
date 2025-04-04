@@ -18,10 +18,13 @@ pub fn update_building_bar (
         let mut entity = coms.get_entity(entity).unwrap();
         entity.despawn_descendants();
         entity.with_children(|p| {
-            for room in &storage.rooms {
-                insert_storage_item(p, &assets, &room);
-            }
 
+
+            for i in 0..storage.rooms.len() {
+                let room = &storage.rooms[i];
+
+                insert_storage_item(p, &assets, &room, i);
+            }
         });
     }
 }

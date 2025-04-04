@@ -32,5 +32,6 @@ pub struct ExitButton;
 // }
 
 #[derive(Component)]
-pub struct StoredRoom;
-
+pub struct StoredRoom {
+    pub index: usize,
+}
