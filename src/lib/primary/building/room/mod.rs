@@ -14,10 +14,15 @@ type FightingRoom = fighting::room::Room;
 
 
 
-#[derive(Component)]
+
+
+
+#[derive(Component, Clone)]
 pub struct Room {
     pub room_parts: Vec<RoomPart>,
     pub image: String,
+    pub size: (u32, u32),
+    pub pos: Option<(u32, u32)>,
 }
 
 

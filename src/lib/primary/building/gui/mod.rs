@@ -13,7 +13,7 @@ pub mod structs;
 use bevy::prelude::*;
 
 use layout::build_gui;
-use systems::{/*set_up_building_bar,*/ update_building_bar, update_item_info};
+use systems::{update_building_bar, update_item_info};
 use crate::lib::primary::states::AppState;
 
 

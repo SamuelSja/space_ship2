@@ -60,22 +60,22 @@ pub fn update_item_info (
 ) {
 
     
-    if let Some(selected) = &selected.val {
-        for mut text in text_q.iter_mut() {
-            let data = selected.get_info(); 
+    // if let Some(selected) = &selected.val {
+    //     for mut text in text_q.iter_mut() {
+    //         let data = selected.get_info(); 
 
-            let mut ans = String::from("");
-            for item in data {
-                ans += &format!("{}: {}", item.0, item.1);
-            }
+    //         let mut ans = String::from("");
+    //         for item in data {
+    //             ans += &format!("{}: {}", item.0, item.1);
+    //         }
 
-            text.0 = ans;
-        }
-    } else {
-        for mut text in text_q.iter_mut() {
-            text.0 = String::from("");
-        }
-    }
+    //         text.0 = ans;
+    //     }
+    // } else {
+    //     for mut text in text_q.iter_mut() {
+    //         text.0 = String::from("");
+    //     }
+    // }
 }
 
 

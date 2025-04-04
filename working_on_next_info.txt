@@ -1,0 +1,19 @@
+
+
+Next, I plan to allow the player to drag the buildings onto the space ship.
+Use bevy::picking to accoplish this.
+I found these links helpful.
+https://bevyengine.org/examples-webgpu/picking/mesh-picking/ 
+https://docs.rs/bevy/latest/bevy/picking/events/struct.Pointer.html 
+https://docs.rs/bevy/latest/bevy/picking/events/index.html
+
+
+I think this will always be helpful
+https://bevyengine.org/assets/
+
+
+Also, I should find a way to make text automaticaly wrap when in a txt file.
+
+
+
+

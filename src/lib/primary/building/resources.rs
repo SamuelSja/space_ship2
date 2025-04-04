@@ -1,9 +1,22 @@
 
 use bevy::prelude::*;
 
-use super::room::{primary::RoomPart, Room};
+use super::{room::{primary::RoomPart, Room}, structs::Ghost};
 
+#[derive(Resource)]
+pub struct ShipInfo {
+    pub start_pos: (f32, f32),
+    pub tile_size: (f32, f32),
+}
 
+impl Default for ShipInfo {
+    fn default() -> Self {
+        Self {
+            start_pos: (0.0, 0.0),
+            tile_size: (50.0, 50.0),
+        }
+    }
+}
 
 #[derive(Resource)]
 pub struct Storage {
@@ -25,6 +38,8 @@ impl Default for Storage {
                         },
                     ],
                     image: String::from("images/todo.png"),
+                    pos: None,
+                    size: (3, 2),
                 },
                 Room {
                     room_parts: vec![
@@ -37,6 +52,8 @@ impl Default for Storage {
                         },
                     ],
                     image: String::from("images/todo.png"),
+                    pos: None,
+                    size: (3, 2),
                 },
                 Room {
                     room_parts: vec![
@@ -48,6 +65,8 @@ impl Default for Storage {
                         },
                     ],
                     image: String::from("images/todo.png"),
+                    pos: None,
+                    size: (3, 2),
                 }
             ] 
         }
@@ -55,15 +74,23 @@ impl Default for Storage {
 }
 
 
+
+
 #[derive(Resource)]
 pub struct Selected {
-    pub val: Option<Room>,
+    pub val: Selectable,
 }
 
 impl Default for Selected {
     fn default() -> Self {
         Self {
-            val: None,
+            val: Selectable::None,
         }
     }
+}
+
+pub enum Selectable {
+    None,
+    Room(Entity),
+    Ghost(Entity),
 }

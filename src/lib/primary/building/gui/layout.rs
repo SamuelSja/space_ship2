@@ -2,6 +2,8 @@
 use bevy::prelude::*;
 
 use crate::lib::primary::building::room::Room;
+use crate::lib::primary::building::systems::pick_up_building;
+// use crate::lib::primary::building::systems::test_click;
 
 use super::styles::*;
 use super::structs::*;
@@ -63,8 +65,8 @@ pub fn build_gui (
             ;
         });
     });
-}
 
+}
 
 
 
@@ -72,13 +74,26 @@ pub fn build_gui (
 
 pub fn insert_storage_item(p: &mut ChildBuilder<'_>, assets: &Res<AssetServer>, room: &Room) {
     p.spawn(storage_item_style())
+    .insert(room.clone())
+    .insert(StoredRoom {})
+    .insert(Button::default())
+
+    // .insert(Mesh2d)
+    // .observe(pick_up_building)
+
+
+    // .observe(test_click)
+
+
     .with_children(|p| {
 
         p.spawn(ImageNode::new(assets.load(room.image.clone())));
 
         for (key, val) in room.get_info() {
             p.spawn(storage_info_style())
-            .insert(Text::new(format!("{}: {}", key, val)));
+            .insert(Text::new(format!("{}: {}", key, val)))
+            
+            ;
         }
     });
 }
