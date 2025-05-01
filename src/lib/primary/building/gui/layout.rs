@@ -15,7 +15,7 @@ pub fn build_gui (
 ) {
     println!("build gui");
 
-    coms.spawn(main_style())
+    coms.spawn((main_style(), BuildingRoot {}))
     .with_children(|p| {
         p.spawn(upper_section_style())
         .with_children(|p| {
@@ -69,7 +69,14 @@ pub fn build_gui (
 }
 
 
-
+pub fn despawn_gui (
+    mut coms: Commands,
+    root_q: Query<Entity, With<BuildingRoot>>,
+) {
+    for entity in root_q.iter() {
+        coms.get_entity(entity).unwrap().despawn_recursive()
+    }  
+}
 
 
 pub fn insert_storage_item(p: &mut ChildBuilder<'_>, assets: &Res<AssetServer>, room: &Room, index: usize) {

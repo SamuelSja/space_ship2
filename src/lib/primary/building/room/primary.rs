@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::lib::primary::fighting;
 
-type FightingRoomPart = fighting::room::primary::RoomPart;
+type FightingRoomPart = fighting::room::primary_part::RoomPart;
 
 #[derive(Clone)]
 pub enum RoomPart {
@@ -60,6 +60,7 @@ impl RoomPart {
                     damage: *damage,
                     reload_time: *reload,
                     cur_reload: *reload,
+                    target: None,
                 }
             },
             Self::Shield { max_shield, reload } => {

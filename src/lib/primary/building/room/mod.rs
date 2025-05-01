@@ -27,11 +27,12 @@ pub struct Room {
 
 
 impl Room {
-    pub fn to_game(&self) -> FightingRoom {
+    pub fn to_game(&self, player: bool) -> FightingRoom {
         let room_parts = self.room_parts.iter().map(|part| part.to_game()).collect::<Vec<_>>();
 
         FightingRoom {
-            room_parts
+            room_parts,
+            player,
         } 
     }
 

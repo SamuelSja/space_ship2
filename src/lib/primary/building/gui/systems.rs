@@ -1,9 +1,9 @@
 
 use bevy::{ecs::query::QueryData, prelude::*};
 
-use crate::lib::primary::building::resources::{Selected, Storage};
+use crate::lib::primary::{building::resources::{Selected, Storage}, states::AppState};
 
-use super::{layout::insert_storage_item, structs::{BuildingBar, ItemInfo}};
+use super::{layout::insert_storage_item, structs::{BuildingBar, FightButton, ItemInfo}};
 
 
 pub fn update_building_bar (
@@ -26,6 +26,18 @@ pub fn update_building_bar (
                 insert_storage_item(p, &assets, &room, i);
             }
         });
+    }
+}
+
+
+pub fn fight (
+    button_q: Query<&Interaction, (With<FightButton>, Changed<Interaction>)>,
+    mut app_state: ResMut<NextState<AppState>>,
+) {
+    for interaction in button_q.iter() {
+        if let Interaction::Pressed = interaction {
+            app_state.set(AppState::Fighting);
+        }
     }
 }
 

@@ -10,6 +10,8 @@ use gui::GUIPlug;
 use resources::{Selected, ShipInfo, Storage};
 use systems::{drop_ghost, ghost_follow, pick_up_building, pick_up_room};
 
+use super::states::AppState;
+
 
 pub struct BuildingPlug;
 impl Plugin for BuildingPlug {
@@ -19,10 +21,12 @@ impl Plugin for BuildingPlug {
         .init_resource::<Storage>()
         .init_resource::<Selected>()
         .init_resource::<ShipInfo>()
-        .add_systems(Update, pick_up_building)
-        .add_systems(Update, ghost_follow)
-        .add_systems(Update, drop_ghost)
-        .add_systems(Update, pick_up_room)
+        .add_systems(Update, (
+            pick_up_building,
+            pick_up_room,
+            ghost_follow,
+            drop_ghost
+        ).run_if(in_state(AppState::Building)))
         ; 
     }
 }

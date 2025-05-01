@@ -4,7 +4,8 @@ use crate::lib::primary::building::room::Room;
 
 
 
-
+#[derive(Component)]
+pub struct BuildingRoot;
 
 #[derive(Component)]
 pub struct ItemInfo;
