@@ -1,6 +1,8 @@
 
 use bevy::prelude::*;
 
+use crate::lib::primary::building::resources::ShipInfo;
+
 use super::{room::{primary_event::RoomEventHolder, Room}, structs::{EnemyShip, PlayerShip, Ship}};
 
 
@@ -12,10 +14,11 @@ pub fn set_up_game (
     mut coms: Commands,
     b_room_q: Query<(&BRoom, &Transform, Entity)>,
     assets: Res<AssetServer>,
+    ship: Res<ShipInfo>,
 
-) {
+) { 
     for (b_room, transform, entity) in b_room_q.iter() {
-        let g_room = b_room.to_game(true);
+        let g_room = b_room.to_game(&mut coms, &assets, &ship, true);
         let g_transform = transform.clone();
 
         coms.spawn((

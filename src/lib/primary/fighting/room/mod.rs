@@ -22,4 +22,9 @@ impl Room {
             room_part.preform_actions(time, event_holder);
         }
     }
+
+
+
+
+
 }

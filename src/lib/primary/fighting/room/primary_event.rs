@@ -79,6 +79,14 @@ pub struct RoomEventHolder {
     pub events: Vec<RoomEvent>, 
 }
 
+impl Default for RoomEventHolder {
+    fn default() -> Self {
+        Self {
+            events: Vec::new(),
+        }
+    }
+}
+
 
 
 
